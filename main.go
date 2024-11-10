@@ -15,18 +15,21 @@ import (
 
 var inputSet []string = make([]string, 2)
 
-func t() {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(1)*time.Second)
+func t(codes map[string]string) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(100)*time.Second)
+
 
 	tempPath, err := os.MkdirTemp("./", "runJava")
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(0)
 	} else {
-		os.Chmod(tempPath, 0o777)
+		//os.Chmod(tempPath)
+		os.Chdir(tempPath)
 	}
-	os.Chdir(tempPath)
-	defer os.RemoveAll(path.Join("..",tempPath))
+
+	defer os.RemoveAll(path.Join("..", tempPath))
+
 	code := `
 
 	import java.util.Scanner;
@@ -53,7 +56,7 @@ func t() {
 	
 	`
 
-	os.WriteFile("CodeJv.java", []byte(code), 0o777)
+	os.WriteFile("CodeJv.java", []byte(code), 0o755)
 	code = `
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
@@ -66,12 +69,14 @@ func t() {
  */
 public class CodeJv2 {
     static public void  hello(){
-        System.out.println("Hello! From CodeJv2");
+        for (int i = 0; i < 10; i++) {
+            System.out.println(i);
+        }
     }
 }
 
 	`
-	os.WriteFile("CodeJv2.java", []byte(code), 0o777)
+	os.WriteFile("CodeJv2.java", []byte(code), 0o755)
 
 	if err != nil {
 		log.Fatal(err)
@@ -84,10 +89,9 @@ public class CodeJv2 {
 	}()
 
 	//Complier state
-	time.Sleep(time.Duration(10) * time.Millisecond)
+	//time.Sleep(time.Duration(10) * time.Millisecond)
 	comp := exec.Command("javac", "CodeJv.java")
 	comp.Run()
-
 
 	cmd := exec.CommandContext(ctx, "java", "CodeJv.java")
 	stdin, err := cmd.StdinPipe()
@@ -125,7 +129,7 @@ public class CodeJv2 {
 	cmd.Run()
 
 	fmt.Print(strings.Trim(string(out), ""), map[bool]string{false: "", true: "Error = "}[string(wtf) != ""], string(wtf))
-	if(ctx.Err() != nil){
+	if ctx.Err() != nil {
 		fmt.Println(ctx.Err())
 	}
 }
@@ -133,7 +137,7 @@ public class CodeJv2 {
 func main() {
 
 	for i := 1; i <= 1; i++ {
-		inputSet[0] = strconv.Itoa(i*50)
+		inputSet[0] = strconv.Itoa(i * 50)
 		inputSet[1] = strconv.Itoa(i + 100)
 
 		if i == 3 {
@@ -141,6 +145,8 @@ func main() {
 
 		}
 		fmt.Println("Input: ", inputSet)
-		t()
+		var mapp map[string]string  = make(map[string]string)
+		mapp["xx"] = "yy"
+		t(mapp)
 	}
 }
